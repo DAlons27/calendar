@@ -153,9 +153,9 @@
     // ==========================================
     // 1. CONFIGURACIÓN DE SUPABASE
     // ==========================================
-    // Reemplaza estos valores por los de tu proyecto de Supabase
-    let SUPABASE_URL = window.ENV_SUPABASE_URL || localStorage.getItem('taskcal_supabase_url') || '';
-    let SUPABASE_ANON_KEY = window.ENV_SUPABASE_KEY || localStorage.getItem('taskcal_supabase_key') || '';
+    // Credenciales activas de Supabase
+    let SUPABASE_URL = window.ENV_SUPABASE_URL || localStorage.getItem('taskcal_supabase_url') || 'https://qfteohzbcectdynesoyl.supabase.co';
+    let SUPABASE_ANON_KEY = window.ENV_SUPABASE_KEY || localStorage.getItem('taskcal_supabase_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdGVvaHpiY2VjdGR5bmVzb3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODQ2OTMsImV4cCI6MjEwNzY2MDY5M30.RKPuMqKX5odP_M8KtIYys1tUg9k9QrWT8P5sG1ncPuw';
 
     let supabase = null;
 
