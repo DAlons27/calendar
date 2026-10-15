@@ -15,10 +15,10 @@
     .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
   </style>
 </head>
-<body class="bg-[#f4f6f8] text-slate-800 min-h-screen flex flex-col antialiased">
+<body class="bg-[#f0f2f5] text-slate-800 min-h-screen flex flex-col antialiased">
 
   <!-- Barra Superior -->
-  <header class="bg-white border-b border-slate-200/80 px-6 lg:px-10 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-20">
+  <header class="bg-white border-b border-slate-200/80 px-6 lg:px-10 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-20">
     <div class="flex items-center gap-3.5">
       <div class="w-10 h-10 rounded-xl bg-[#1e2a78] flex items-center justify-center text-white font-bold text-base shadow-xs tracking-wide">
         TC
@@ -34,20 +34,20 @@
 
     <!-- Botones de Acción -->
     <div class="flex items-center gap-2.5">
-      <button onclick="copyDaySummary()" class="px-3.5 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-2">
+      <button onclick="copyDaySummary()" class="px-4 py-2 text-xs font-medium text-slate-700 bg-slate-200/80 hover:bg-slate-300/80 rounded-xl transition flex items-center gap-2">
         <span>📋</span> Copiar resumen
       </button>
-      <button onclick="copyWorkspaceLink()" class="px-4 py-2 text-xs font-semibold text-white bg-[#253992] hover:bg-indigo-700 rounded-xl shadow-xs transition flex items-center gap-2">
+      <button onclick="copyWorkspaceLink()" class="px-4 py-2 text-xs font-semibold text-white bg-[#253992] hover:bg-[#1a2b75] rounded-xl shadow-xs transition flex items-center gap-2">
         <span>🔗</span> Compartir (Link)
       </button>
     </div>
   </header>
 
   <!-- Contenedor Principal (Split View) -->
-  <main class="flex-1 max-w-[1400px] w-full mx-auto p-4 md:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+  <main class="flex-1 max-w-[1400px] w-full mx-auto p-4 md:p-6 lg:p-7 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
     
     <!-- Columna Izquierda: Calendario (8 cols) -->
-    <section class="lg:col-span-8 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 md:p-7 flex flex-col">
+    <section class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
       
       <!-- Controles de Mes -->
       <div class="flex items-center justify-between mb-5">
@@ -76,17 +76,17 @@
       </div>
 
       <!-- Cuadrícula Dinámica Unificada con Bordes Finos -->
-      <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-slate-200/80 gap-px grid grid-cols-7 auto-rows-fr shadow-2xs" id="calendarGrid">
+      <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-200 gap-px grid grid-cols-7 auto-rows-fr shadow-2xs" id="calendarGrid">
       </div>
     </section>
 
     <!-- Columna Derecha: Agenda del Día (4 cols) -->
-    <aside class="lg:col-span-4 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 md:p-7 flex flex-col min-h-[580px]">
+    <aside class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col min-h-[580px]">
       
       <!-- Encabezado de la Agenda -->
       <div>
         <h3 class="text-lg md:text-xl font-bold text-slate-900">Agenda del Día</h3>
-        <p id="selectedDateLabel" class="text-xs text-slate-500 font-medium capitalize mt-1">
+        <p id="selectedDateLabel" class="text-xs text-slate-500 font-medium capitalize mt-0.5">
           Miércoles, 14 de octubre de 2026
         </p>
 
@@ -96,7 +96,7 @@
             <span class="text-slate-800">Progreso completado <span id="progressRatio" class="font-normal text-slate-500">0/0</span></span>
             <span id="progressPercent" class="font-bold text-slate-900">0%</span>
           </div>
-          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
             <div id="progressBar" class="h-full bg-[#1e2a78] rounded-full transition-all duration-300" style="width: 0%"></div>
           </div>
         </div>
@@ -105,7 +105,7 @@
       <div class="w-full h-px bg-slate-100 mb-5"></div>
 
       <!-- Formulario para Nuevo Pendiente -->
-      <form id="taskForm" onsubmit="addTask(event)" class="space-y-2.5 mb-5">
+      <form id="taskForm" onsubmit="handleFormSubmit(event)" class="space-y-2.5 mb-5">
         <input 
           type="text" 
           id="taskInput" 
@@ -122,14 +122,14 @@
               <option value="personal">🟢 Personal</option>
             </select>
           </div>
-          <button type="submit" class="col-span-6 py-2 bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition shadow-2xs">
+          <button type="submit" id="addBtn" class="col-span-6 py-2 bg-black hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition shadow-2xs cursor-pointer">
             + Agregar Pendiente
           </button>
         </div>
       </form>
 
       <!-- Lista de Pendientes -->
-      <div id="taskList" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1"></div>
+      <div id="taskList" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1"></div>
     </aside>
 
   </main>
@@ -143,7 +143,17 @@
     // ==========================================
     const SUPABASE_URL = 'https://qfteohzbcectdynesoyl.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdGVvaHpiY2VjdGR5bmVzb3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODQ2OTMsImV4cCI6MjEwNzY2MDY5M30.RKPuMqKX5odP_M8KtIYys1tUg9k9QrWT8P5sG1ncPuw';
-    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    
+    let supabase = null;
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (e) {
+      console.warn('Supabase no inicializado, modo offline activado', e);
+    }
+
+    const LOCAL_STORAGE_KEY = 'taskcal_cached_tasks_v2';
 
     // Espacio de trabajo (por defecto 'general' o '?ws=equipo')
     const urlParams = new URLSearchParams(window.location.search);
@@ -155,7 +165,13 @@
     }
 
     let tasksByDate = {};
-    // Iniciar por defecto en Octubre 2026 (14 de octubre) para que coincida exactamente con la maqueta
+    // Cargar caché local inmediato si existe
+    try {
+      const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (cached) tasksByDate = JSON.parse(cached);
+    } catch (e) {}
+
+    // Iniciar en Octubre 2026 (14 de octubre) para que coincida con la maqueta
     let currentDate = new Date(2026, 9, 14);
     let selectedDateKey = '2026-10-14';
 
@@ -165,153 +181,198 @@
       personal: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', dot: 'bg-emerald-500', label: 'Personal' }
     };
 
+    // Generador seguro de IDs compatible con todos los navegadores
+    function generateId() {
+      return 'task_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+    }
+
+    function saveLocalBackup() {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasksByDate));
+      } catch (e) {}
+    }
+
     // ==========================================
-    // 2. INICIALIZACIÓN Y TIEMPO REAL
+    // 2. INICIALIZACIÓN
     // ==========================================
     async function init() {
-      await fetchTasks();
       renderCalendar();
       renderSidePanel();
+      await fetchTasks();
       setupRealtime();
     }
 
     async function fetchTasks() {
       if (!supabase) return;
-      const { data, error } = await supabase
-        .from('calendar_tasks')
-        .select('*')
-        .eq('workspace_slug', currentWorkspace);
+      try {
+        const { data, error } = await supabase
+          .from('calendar_tasks')
+          .select('*')
+          .eq('workspace_slug', currentWorkspace);
 
-      if (error) {
-        console.error('Error al cargar tareas de Supabase:', error);
-        return;
+        if (error) {
+          console.warn('Error al leer de Supabase:', error.message);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          tasksByDate = {};
+          data.forEach(task => {
+            const key = task.task_date;
+            if (!tasksByDate[key]) tasksByDate[key] = [];
+            tasksByDate[key].push(task);
+          });
+          saveLocalBackup();
+          renderCalendar();
+          renderSidePanel();
+        }
+      } catch (err) {
+        console.warn('fetchTasks caught:', err);
       }
-
-      tasksByDate = {};
-      data.forEach(task => {
-        const key = task.task_date;
-        if (!tasksByDate[key]) tasksByDate[key] = [];
-        tasksByDate[key].push(task);
-      });
     }
 
     function setupRealtime() {
       if (!supabase) return;
-      supabase
-        .channel('public:calendar_tasks')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'calendar_tasks', filter: `workspace_slug=eq.${currentWorkspace}` },
-          () => {
-            fetchTasks().then(() => {
-              renderCalendar();
-              renderSidePanel();
-            });
-          }
-        )
-        .subscribe();
+      try {
+        supabase
+          .channel('public:calendar_tasks')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'calendar_tasks', filter: `workspace_slug=eq.${currentWorkspace}` },
+            () => {
+              fetchTasks().then(() => {
+                renderCalendar();
+                renderSidePanel();
+              });
+            }
+          )
+          .subscribe();
+      } catch (e) {}
     }
 
     // ==========================================
-    // 3. OPERACIONES EN SUPABASE
+    // 3. OPERACIONES EN LA LISTA DE TAREAS
     // ==========================================
-    async function addTask(e) {
-      e.preventDefault();
+    function handleFormSubmit(e) {
+      if (e) e.preventDefault();
+      addTask();
+    }
+
+    async function addTask() {
       const titleInput = document.getElementById('taskInput');
       const categoryInput = document.getElementById('taskCategory');
 
       let rawTitle = titleInput.value.trim();
-      let assignee = null;
+      if (!rawTitle) return;
 
-      // Si el usuario escribe @persona en el título (ej: "Revisar docs @Ana") se extrae automáticamente
+      let assignee = null;
+      // Extrae @nombre si está escrito en el título
       const assigneeMatch = rawTitle.match(/@([a-zA-Z0-9_\u00C0-\u017F]+)/);
       if (assigneeMatch) {
         assignee = assigneeMatch[1];
         rawTitle = rawTitle.replace(assigneeMatch[0], '').trim();
       }
 
+      let category = categoryInput.value;
+      if (!categoryStyles[category]) category = 'trabajo';
+
+      const tempId = generateId();
       const newTask = {
+        id: tempId,
         workspace_slug: currentWorkspace,
         task_date: selectedDateKey,
         title: rawTitle,
-        category: categoryInput.value || 'trabajo',
+        category: category,
         assignee: assignee,
         done: false
       };
 
+      // Limpiar input de inmediato
       titleInput.value = '';
 
-      // Optimistic UI update
-      const tempId = crypto.randomUUID();
-      const tempTask = { ...newTask, id: tempId };
+      // 1. Inserción inmediata en memoria y localStorage (instantáneo para el usuario)
       if (!tasksByDate[selectedDateKey]) tasksByDate[selectedDateKey] = [];
-      tasksByDate[selectedDateKey].push(tempTask);
-      renderCalendar();
-      renderSidePanel();
+      tasksByDate[selectedDateKey].push(newTask);
+      saveLocalBackup();
 
-      if (!supabase) return;
-      const { data, error } = await supabase
-        .from('calendar_tasks')
-        .insert([newTask])
-        .select();
-
-      if (error) {
-        showToast('❌ No se pudo guardar la tarea');
-        tasksByDate[selectedDateKey] = tasksByDate[selectedDateKey].filter(t => t.id !== tempId);
-        renderCalendar();
-        renderSidePanel();
-        return;
-      }
-
-      // Reemplazar tempId por ID real
-      const idx = tasksByDate[selectedDateKey].findIndex(t => t.id === tempId);
-      if (idx !== -1 && data && data[0]) tasksByDate[selectedDateKey][idx] = data[0];
+      // Renderizar al instante
       renderCalendar();
       renderSidePanel();
       showToast('✅ Pendiente agregado');
+
+      // 2. Sincronizar en segundo plano con Supabase
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from('calendar_tasks')
+            .insert([{
+              workspace_slug: currentWorkspace,
+              task_date: selectedDateKey,
+              title: rawTitle,
+              category: category,
+              assignee: assignee,
+              done: false
+            }])
+            .select();
+
+          if (error) {
+            console.error('Error guardando en Supabase:', error);
+          } else if (data && data[0]) {
+            // Reemplazar tempId por ID real de Supabase
+            const list = tasksByDate[selectedDateKey] || [];
+            const idx = list.findIndex(t => t.id === tempId);
+            if (idx !== -1) {
+              list[idx].id = data[0].id;
+              saveLocalBackup();
+            }
+          }
+        } catch (err) {
+          console.error('Error de red al guardar en Supabase:', err);
+        }
+      }
     }
 
     async function toggleTask(taskId) {
       const list = tasksByDate[selectedDateKey] || [];
-      const task = list.find(t => t.id === taskId);
+      const task = list.find(t => String(t.id) === String(taskId));
       if (!task) return;
 
-      const newDone = !task.done;
-      task.done = newDone;
+      task.done = !task.done;
+      saveLocalBackup();
       renderCalendar();
       renderSidePanel();
 
-      if (!supabase) return;
-      const { error } = await supabase
-        .from('calendar_tasks')
-        .update({ done: newDone })
-        .eq('id', taskId);
-
-      if (error) {
-        showToast('❌ Error al actualizar tarea');
-        task.done = !newDone;
-        renderCalendar();
-        renderSidePanel();
+      if (supabase) {
+        try {
+          await supabase
+            .from('calendar_tasks')
+            .update({ done: task.done })
+            .eq('id', taskId);
+        } catch (e) {
+          console.error('Error al actualizar en Supabase:', e);
+        }
       }
     }
 
     async function deleteTask(taskId) {
-      tasksByDate[selectedDateKey] = (tasksByDate[selectedDateKey] || []).filter(t => t.id !== taskId);
+      const list = tasksByDate[selectedDateKey] || [];
+      tasksByDate[selectedDateKey] = list.filter(t => String(t.id) !== String(taskId));
       if (tasksByDate[selectedDateKey].length === 0) delete tasksByDate[selectedDateKey];
+      
+      saveLocalBackup();
       renderCalendar();
       renderSidePanel();
+      showToast('🗑️ Tarea eliminada');
 
-      if (!supabase) return;
-      const { error } = await supabase
-        .from('calendar_tasks')
-        .delete()
-        .eq('id', taskId);
-
-      if (error) {
-        showToast('❌ Error al eliminar la tarea');
-        fetchTasks().then(() => { renderCalendar(); renderSidePanel(); });
-      } else {
-        showToast('🗑️ Tarea eliminada');
+      if (supabase) {
+        try {
+          await supabase
+            .from('calendar_tasks')
+            .delete()
+            .eq('id', taskId);
+        } catch (e) {
+          console.error('Error al borrar en Supabase:', e);
+        }
       }
     }
 
@@ -360,7 +421,7 @@
       let startDay = (firstDayOfMonth.getDay() + 6) % 7;
       const totalDays = lastDayOfMonth.getDate();
 
-      // Días del mes anterior para rellenar la primera semana
+      // Días del mes anterior
       const prevMonthLastDay = new Date(year, month, 0).getDate();
       for (let i = startDay - 1; i >= 0; i--) {
         const prevDayNum = prevMonthLastDay - i;
@@ -376,7 +437,7 @@
         grid.appendChild(createCell(dateKey, day, false));
       }
 
-      // Días del mes siguiente para completar la cuadrícula (hasta múltiplos de 7)
+      // Días del mes siguiente (para completar la cuadrícula de múltiplos de 7)
       const totalCellsRendered = startDay + totalDays;
       const remainingCells = (7 - (totalCellsRendered % 7)) % 7;
       for (let day = 1; day <= remainingCells; day++) {
@@ -394,10 +455,10 @@
       const cell = document.createElement('div');
       cell.onclick = () => selectDate(dateKey);
       
-      // Clases exactas de la celda de la maqueta
+      // Clases exactas del diseño de la maqueta
       cell.className = `min-h-[92px] p-2.5 flex flex-col justify-between cursor-pointer transition relative group ${
         isSelected
-          ? 'border-2 border-indigo-600 bg-indigo-50/40 rounded-xl z-10 -m-px shadow-xs'
+          ? 'ring-2 ring-indigo-500 bg-indigo-50/50 rounded-xl z-10'
           : isOtherMonth 
             ? 'bg-slate-50/50 text-slate-300 hover:bg-slate-100/50' 
             : 'bg-white hover:bg-slate-50/80 text-slate-800'
@@ -425,7 +486,7 @@
         pillsContainer.appendChild(pill);
       });
 
-      // Indicador inferior si hay tareas completadas o más tareas
+      // Indicador inferior: si hay tareas completadas o más tareas
       const bottomRow = document.createElement('div');
       bottomRow.className = 'min-h-[14px] flex items-center justify-between text-[10px] text-slate-400 font-medium';
 
@@ -491,7 +552,7 @@
               </div>
             </div>
           </label>
-          <button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-rose-600 text-sm px-1.5 transition leading-none" title="Eliminar">✕</button>
+          <button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-rose-600 text-sm px-1.5 transition leading-none cursor-pointer" title="Eliminar">✕</button>
         `;
         list.appendChild(item);
       });
@@ -525,6 +586,7 @@
       setTimeout(() => toast.classList.add('opacity-0'), 3000);
     }
 
+    // Arrancar la aplicación
     init();
   </script>
 </body>
