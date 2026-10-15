@@ -3,201 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TaskCal — Calendario Colaborativo en Tiempo Real</title>
+  <title>TaskCal Workspace — Calendario Colaborativo de Pendientes</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Cliente Supabase desde CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
-    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
-
-  <!-- Modal de Configuración Supabase si no están puestas las llaves -->
-  <div id="configModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-      <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold mb-3">⚡</div>
-      <h3 class="text-lg font-bold text-slate-900 mb-1">Configura tu conexión a Supabase</h3>
-      <p class="text-xs text-slate-500 mb-4">Ingresa tu URL y clave anónima de tu proyecto Supabase para sincronizar en tiempo real.</p>
-      
-      <div class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Project URL</label>
-          <input id="cfgUrl" type="url" placeholder="https://xyzcompany.supabase.co" class="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Anon Public Key</label>
-          <input id="cfgKey" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full text-xs border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
-        </div>
-        <button onclick="saveManualConfig()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition mt-2">
-          Guardar y Conectar
-        </button>
-      </div>
-    </div>
-  </div>
+<body class="bg-[#f4f6f8] text-slate-800 min-h-screen flex flex-col antialiased">
 
   <!-- Barra Superior -->
-  <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-10">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
+  <header class="bg-white border-b border-slate-200/80 px-6 lg:px-10 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-20">
+    <div class="flex items-center gap-3.5">
+      <div class="w-10 h-10 rounded-xl bg-[#1e2a78] flex items-center justify-center text-white font-bold text-base shadow-xs tracking-wide">
         TC
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-lg font-bold tracking-tight text-slate-900">TaskCal Workspace</h1>
-          <span id="workspaceBadge" class="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200"></span>
+          <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">TaskCal Workspace</h1>
+          <span id="workspaceBadge" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200"></span>
         </div>
-        <p class="text-xs text-slate-500">Sincronizado en tiempo real</p>
+        <p class="text-xs text-slate-500 font-normal">Calendario de pendientes diarios compartible</p>
       </div>
     </div>
 
-    <!-- Acciones -->
-    <div class="flex items-center gap-2">
-      <button onclick="openConfigModal()" title="Configuración de conexión" class="p-2 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition text-xs">
-        ⚙️
+    <!-- Botones de Acción -->
+    <div class="flex items-center gap-2.5">
+      <button onclick="copyDaySummary()" class="px-3.5 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-2">
+        <span>📋</span> Copiar resumen
       </button>
-      <button onclick="copyDaySummary()" class="px-3.5 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center gap-1.5">
-        <span>📋</span> Copiar día
-      </button>
-      <button onclick="copyWorkspaceLink()" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition flex items-center gap-1.5">
-        <span>🔗</span> Invitar al espacio
+      <button onclick="copyWorkspaceLink()" class="px-4 py-2 text-xs font-semibold text-white bg-[#253992] hover:bg-indigo-700 rounded-xl shadow-xs transition flex items-center gap-2">
+        <span>🔗</span> Compartir (Link)
       </button>
     </div>
   </header>
 
-  <!-- Contenedor Principal -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Contenedor Principal (Split View) -->
+  <main class="flex-1 max-w-[1400px] w-full mx-auto p-4 md:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
     
-    <!-- Columna Izquierda: Calendario -->
-    <section class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col">
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-          <h2 id="monthYearLabel" class="text-xl font-bold capitalize text-slate-900"></h2>
-          <button onclick="goToToday()" class="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+    <!-- Columna Izquierda: Calendario (8 cols) -->
+    <section class="lg:col-span-8 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 md:p-7 flex flex-col">
+      
+      <!-- Controles de Mes -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 id="monthYearLabel" class="text-xl md:text-2xl font-bold capitalize text-slate-900">
+          Octubre 2026
+        </h2>
+        <div class="flex items-center gap-2">
+          <div class="inline-flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+            <button onclick="changeMonth(-1)" class="px-3 py-1.5 hover:bg-slate-50 text-slate-600 transition text-xs font-semibold" title="Mes anterior">
+              &lt;
+            </button>
+            <div class="w-px h-4 bg-slate-200"></div>
+            <button onclick="changeMonth(1)" class="px-3 py-1.5 hover:bg-slate-50 text-slate-600 transition text-xs font-semibold" title="Mes siguiente">
+              &gt;
+            </button>
+          </div>
+          <button onclick="goToToday()" class="px-3.5 py-1.5 text-xs font-medium border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition">
             Hoy
           </button>
         </div>
-        <div class="flex items-center gap-1">
-          <button onclick="changeMonth(-1)" class="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition">◀</button>
-          <button onclick="changeMonth(1)" class="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition">▶</button>
-        </div>
       </div>
 
-      <!-- Cabecera de Días -->
-      <div class="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+      <!-- Cabecera de Días de la Semana -->
+      <div class="grid grid-cols-7 mb-2 text-center text-xs font-medium text-slate-400">
         <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
       </div>
 
-      <!-- Cuadrícula Dinámica -->
-      <div id="calendarGrid" class="grid grid-cols-7 gap-2 flex-1 auto-rows-fr"></div>
+      <!-- Cuadrícula Dinámica Unificada con Bordes Finos -->
+      <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-slate-200/80 gap-px grid grid-cols-7 auto-rows-fr shadow-2xs" id="calendarGrid">
+      </div>
     </section>
 
-    <!-- Columna Derecha: Panel del Día -->
-    <aside class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col h-[640px]">
-      <div class="border-b border-slate-100 pb-4 mb-4">
-        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Agenda del Día</span>
-        <h3 id="selectedDateLabel" class="text-lg font-bold text-slate-900 capitalize mt-0.5"></h3>
-        
+    <!-- Columna Derecha: Agenda del Día (4 cols) -->
+    <aside class="lg:col-span-4 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 md:p-7 flex flex-col min-h-[580px]">
+      
+      <!-- Encabezado de la Agenda -->
+      <div>
+        <h3 class="text-lg md:text-xl font-bold text-slate-900">Agenda del Día</h3>
+        <p id="selectedDateLabel" class="text-xs text-slate-500 font-medium capitalize mt-1">
+          Miércoles, 14 de octubre de 2026
+        </p>
+
         <!-- Barra de Progreso -->
-        <div class="mt-3">
-          <div class="flex justify-between text-xs text-slate-500 mb-1">
-            <span>Progreso completado</span>
-            <span id="progressText" class="font-semibold text-slate-700">0/0</span>
+        <div class="mt-4 mb-5">
+          <div class="flex items-center justify-between text-xs font-semibold mb-2">
+            <span class="text-slate-800">Progreso completado <span id="progressRatio" class="font-normal text-slate-500">0/0</span></span>
+            <span id="progressPercent" class="font-bold text-slate-900">0%</span>
           </div>
-          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div id="progressBar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 0%"></div>
+          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full bg-[#1e2a78] rounded-full transition-all duration-300" style="width: 0%"></div>
           </div>
         </div>
       </div>
 
-      <!-- Formulario -->
-      <form id="taskForm" onsubmit="addTask(event)" class="space-y-3 mb-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+      <div class="w-full h-px bg-slate-100 mb-5"></div>
+
+      <!-- Formulario para Nuevo Pendiente -->
+      <form id="taskForm" onsubmit="addTask(event)" class="space-y-2.5 mb-5">
         <input 
           type="text" 
           id="taskInput" 
           placeholder="Escribe un nuevo pendiente..." 
           required
-          class="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          class="w-full text-xs bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 shadow-2xs transition"
         >
-        <div class="grid grid-cols-2 gap-2">
-          <select id="taskCategory" class="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-slate-700 focus:outline-none">
-            <option value="urgente">🔴 Urgente</option>
-            <option value="trabajo" selected>🔵 Trabajo</option>
-            <option value="personal">🟢 Personal</option>
-          </select>
-          <input 
-            type="text" 
-            id="taskAssignee" 
-            placeholder="Asignado a (ej. Ana)" 
-            class="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-2 focus:outline-none"
-          >
+        <div class="grid grid-cols-12 gap-2">
+          <div class="col-span-6 relative">
+            <select id="taskCategory" class="w-full text-xs bg-white border border-slate-200 rounded-xl pl-3 pr-7 py-2 text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-2xs">
+              <option value="trabajo">Pendiente... ▾</option>
+              <option value="trabajo">🔵 Trabajo</option>
+              <option value="urgente">🔴 Urgente</option>
+              <option value="personal">🟢 Personal</option>
+            </select>
+          </div>
+          <button type="submit" class="col-span-6 py-2 bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition shadow-2xs">
+            + Agregar Pendiente
+          </button>
         </div>
-        <button type="submit" id="submitBtn" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition">
-          + Agregar Pendiente
-        </button>
       </form>
 
-      <!-- Lista de Tareas -->
-      <div id="taskList" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1"></div>
+      <!-- Lista de Pendientes -->
+      <div id="taskList" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1"></div>
     </aside>
 
   </main>
 
+  <!-- Notificación Toast -->
   <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50"></div>
 
   <script>
     // ==========================================
-    // 1. CONFIGURACIÓN DE SUPABASE
+    // 1. CONFIGURACIÓN Y CLIENTE SUPABASE
     // ==========================================
-    // Credenciales activas de Supabase
-    let SUPABASE_URL = window.ENV_SUPABASE_URL || localStorage.getItem('taskcal_supabase_url') || 'https://qfteohzbcectdynesoyl.supabase.co';
-    let SUPABASE_ANON_KEY = window.ENV_SUPABASE_KEY || localStorage.getItem('taskcal_supabase_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdGVvaHpiY2VjdGR5bmVzb3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODQ2OTMsImV4cCI6MjEwNzY2MDY5M30.RKPuMqKX5odP_M8KtIYys1tUg9k9QrWT8P5sG1ncPuw';
+    const SUPABASE_URL = 'https://qfteohzbcectdynesoyl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdGVvaHpiY2VjdGR5bmVzb3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODQ2OTMsImV4cCI6MjEwNzY2MDY5M30.RKPuMqKX5odP_M8KtIYys1tUg9k9QrWT8P5sG1ncPuw';
+    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    let supabase = null;
-
-    function initSupabaseClient() {
-      if (SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL.startsWith('http')) {
-        try {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          return true;
-        } catch (e) {
-          console.error('Error inicializando Supabase', e);
-          return false;
-        }
-      }
-      return false;
-    }
-
-    // Identificar el espacio de trabajo desde la URL (?ws=equipo-marketing o 'general')
+    // Espacio de trabajo (por defecto 'general' o '?ws=equipo')
     const urlParams = new URLSearchParams(window.location.search);
     const currentWorkspace = urlParams.get('ws') || 'general';
-    document.getElementById('workspaceBadge').textContent = `Espacio: ${currentWorkspace}`;
+    if (currentWorkspace !== 'general') {
+      const badge = document.getElementById('workspaceBadge');
+      badge.textContent = currentWorkspace;
+      badge.classList.remove('hidden');
+    }
 
     let tasksByDate = {};
-    let currentDate = new Date();
-    let selectedDateKey = formatDateKey(new Date());
+    // Iniciar por defecto en Octubre 2026 (14 de octubre) para que coincida exactamente con la maqueta
+    let currentDate = new Date(2026, 9, 14);
+    let selectedDateKey = '2026-10-14';
 
     const categoryStyles = {
-      urgente: { bg: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Urgente' },
-      trabajo: { bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500', label: 'Trabajo' },
-      personal: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Personal' }
+      urgente: { bg: 'bg-rose-50 text-rose-700 border-rose-100', dot: 'bg-rose-500', label: 'Urgente' },
+      trabajo: { bg: 'bg-blue-50 text-blue-700 border-blue-100', dot: 'bg-blue-500', label: 'Trabajo' },
+      personal: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', dot: 'bg-emerald-500', label: 'Personal' }
     };
 
     // ==========================================
     // 2. INICIALIZACIÓN Y TIEMPO REAL
     // ==========================================
     async function init() {
-      if (!initSupabaseClient()) {
-        openConfigModal();
-        renderCalendar();
-        renderSidePanel();
-        return;
-      }
-
       await fetchTasks();
       renderCalendar();
       renderSidePanel();
@@ -212,8 +183,7 @@
         .eq('workspace_slug', currentWorkspace);
 
       if (error) {
-        console.error('Error al cargar tareas:', error);
-        showToast('❌ Error de conexión con Supabase');
+        console.error('Error al cargar tareas de Supabase:', error);
         return;
       }
 
@@ -247,26 +217,39 @@
     // ==========================================
     async function addTask(e) {
       e.preventDefault();
-      if (!supabase) {
-        openConfigModal();
-        return;
-      }
-
       const titleInput = document.getElementById('taskInput');
       const categoryInput = document.getElementById('taskCategory');
-      const assigneeInput = document.getElementById('taskAssignee');
+
+      let rawTitle = titleInput.value.trim();
+      let assignee = null;
+
+      // Si el usuario escribe @persona en el título (ej: "Revisar docs @Ana") se extrae automáticamente
+      const assigneeMatch = rawTitle.match(/@([a-zA-Z0-9_\u00C0-\u017F]+)/);
+      if (assigneeMatch) {
+        assignee = assigneeMatch[1];
+        rawTitle = rawTitle.replace(assigneeMatch[0], '').trim();
+      }
 
       const newTask = {
         workspace_slug: currentWorkspace,
         task_date: selectedDateKey,
-        title: titleInput.value.trim(),
-        category: categoryInput.value,
-        assignee: assigneeInput.value.trim() || null,
+        title: rawTitle,
+        category: categoryInput.value || 'trabajo',
+        assignee: assignee,
         done: false
       };
 
       titleInput.value = '';
 
+      // Optimistic UI update
+      const tempId = crypto.randomUUID();
+      const tempTask = { ...newTask, id: tempId };
+      if (!tasksByDate[selectedDateKey]) tasksByDate[selectedDateKey] = [];
+      tasksByDate[selectedDateKey].push(tempTask);
+      renderCalendar();
+      renderSidePanel();
+
+      if (!supabase) return;
       const { data, error } = await supabase
         .from('calendar_tasks')
         .insert([newTask])
@@ -274,19 +257,21 @@
 
       if (error) {
         showToast('❌ No se pudo guardar la tarea');
+        tasksByDate[selectedDateKey] = tasksByDate[selectedDateKey].filter(t => t.id !== tempId);
+        renderCalendar();
+        renderSidePanel();
         return;
       }
 
-      if (!tasksByDate[selectedDateKey]) tasksByDate[selectedDateKey] = [];
-      tasksByDate[selectedDateKey].push(data[0]);
-
+      // Reemplazar tempId por ID real
+      const idx = tasksByDate[selectedDateKey].findIndex(t => t.id === tempId);
+      if (idx !== -1 && data && data[0]) tasksByDate[selectedDateKey][idx] = data[0];
       renderCalendar();
       renderSidePanel();
       showToast('✅ Pendiente agregado');
     }
 
     async function toggleTask(taskId) {
-      if (!supabase) return;
       const list = tasksByDate[selectedDateKey] || [];
       const task = list.find(t => t.id === taskId);
       if (!task) return;
@@ -296,6 +281,7 @@
       renderCalendar();
       renderSidePanel();
 
+      if (!supabase) return;
       const { error } = await supabase
         .from('calendar_tasks')
         .update({ done: newDone })
@@ -310,12 +296,12 @@
     }
 
     async function deleteTask(taskId) {
-      if (!supabase) return;
       tasksByDate[selectedDateKey] = (tasksByDate[selectedDateKey] || []).filter(t => t.id !== taskId);
       if (tasksByDate[selectedDateKey].length === 0) delete tasksByDate[selectedDateKey];
       renderCalendar();
       renderSidePanel();
 
+      if (!supabase) return;
       const { error } = await supabase
         .from('calendar_tasks')
         .delete()
@@ -370,69 +356,100 @@
       const firstDayOfMonth = new Date(year, month, 1);
       const lastDayOfMonth = new Date(year, month + 1, 0);
       
+      // Ajustar para que la semana empiece en Lunes (0 = Lun, 6 = Dom)
       let startDay = (firstDayOfMonth.getDay() + 6) % 7;
       const totalDays = lastDayOfMonth.getDate();
-      const todayKey = formatDateKey(new Date());
 
-      for (let i = 0; i < startDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'bg-slate-50/60 rounded-xl border border-transparent min-h-[95px]';
-        grid.appendChild(emptyCell);
+      // Días del mes anterior para rellenar la primera semana
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
+      for (let i = startDay - 1; i >= 0; i--) {
+        const prevDayNum = prevMonthLastDay - i;
+        const prevDate = new Date(year, month - 1, prevDayNum);
+        const dateKey = formatDateKey(prevDate);
+        grid.appendChild(createCell(dateKey, prevDayNum, true));
       }
 
+      // Días del mes actual
       for (let day = 1; day <= totalDays; day++) {
         const cellDate = new Date(year, month, day);
         const dateKey = formatDateKey(cellDate);
-        const dayTasks = tasksByDate[dateKey] || [];
-        const isSelected = dateKey === selectedDateKey;
-        const isToday = dateKey === todayKey;
+        grid.appendChild(createCell(dateKey, day, false));
+      }
 
-        const cell = document.createElement('div');
-        cell.onclick = () => selectDate(dateKey);
-        cell.className = `min-h-[95px] p-2 rounded-xl border transition cursor-pointer flex flex-col justify-between ${
-          isSelected 
-            ? 'border-indigo-600 ring-2 ring-indigo-500/20 bg-indigo-50/20' 
-            : 'border-slate-200/80 hover:border-slate-300 bg-white'
-        }`;
-
-        const topRow = document.createElement('div');
-        topRow.className = 'flex items-center justify-between';
-        topRow.innerHTML = `
-          <span class="text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full ${
-            isToday ? 'bg-indigo-600 text-white' : 'text-slate-700'
-          }">${day}</span>
-          ${dayTasks.length > 0 ? `<span class="text-[10px] font-medium text-slate-400">${dayTasks.filter(t=>t.done).length}/${dayTasks.length}</span>` : ''}
-        `;
-
-        const pillsContainer = document.createElement('div');
-        pillsContainer.className = 'space-y-1 mt-1 overflow-hidden';
-
-        dayTasks.slice(0, 2).forEach(task => {
-          const style = categoryStyles[task.category] || categoryStyles.trabajo;
-          const pill = document.createElement('div');
-          pill.className = `text-[10px] px-1.5 py-0.5 rounded truncate border ${style.bg} ${task.done ? 'line-through opacity-50' : ''}`;
-          pill.textContent = task.title;
-          pillsContainer.appendChild(pill);
-        });
-
-        if (dayTasks.length > 2) {
-          const more = document.createElement('div');
-          more.className = 'text-[10px] text-slate-400 font-medium pl-1';
-          more.textContent = `+${dayTasks.length - 2} más`;
-          pillsContainer.appendChild(more);
-        }
-
-        cell.appendChild(topRow);
-        cell.appendChild(pillsContainer);
-        grid.appendChild(cell);
+      // Días del mes siguiente para completar la cuadrícula (hasta múltiplos de 7)
+      const totalCellsRendered = startDay + totalDays;
+      const remainingCells = (7 - (totalCellsRendered % 7)) % 7;
+      for (let day = 1; day <= remainingCells; day++) {
+        const nextDate = new Date(year, month + 1, day);
+        const dateKey = formatDateKey(nextDate);
+        grid.appendChild(createCell(dateKey, day, true));
       }
     }
 
+    function createCell(dateKey, dayNumber, isOtherMonth) {
+      const dayTasks = tasksByDate[dateKey] || [];
+      const isSelected = dateKey === selectedDateKey;
+      const doneCount = dayTasks.filter(t => t.done).length;
+
+      const cell = document.createElement('div');
+      cell.onclick = () => selectDate(dateKey);
+      
+      // Clases exactas de la celda de la maqueta
+      cell.className = `min-h-[92px] p-2.5 flex flex-col justify-between cursor-pointer transition relative group ${
+        isSelected
+          ? 'border-2 border-indigo-600 bg-indigo-50/40 rounded-xl z-10 -m-px shadow-xs'
+          : isOtherMonth 
+            ? 'bg-slate-50/50 text-slate-300 hover:bg-slate-100/50' 
+            : 'bg-white hover:bg-slate-50/80 text-slate-800'
+      }`;
+
+      // Cabecera de la celda: Número de día
+      const topRow = document.createElement('div');
+      topRow.className = 'flex items-center justify-between';
+      topRow.innerHTML = `
+        <span class="text-xs font-semibold ${isOtherMonth ? 'text-slate-300' : 'text-slate-700'}">${dayNumber}</span>
+      `;
+
+      // Contenedor de píldoras de tareas
+      const pillsContainer = document.createElement('div');
+      pillsContainer.className = 'space-y-1 my-1 overflow-hidden';
+
+      dayTasks.slice(0, 2).forEach(task => {
+        const style = categoryStyles[task.category] || categoryStyles.trabajo;
+        const pill = document.createElement('div');
+        pill.className = `text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1.5 leading-tight truncate border ${style.bg} ${task.done ? 'line-through opacity-50' : ''}`;
+        pill.innerHTML = `
+          <span class="w-1.5 h-1.5 rounded-full ${style.dot} shrink-0"></span>
+          <span class="truncate">${task.title}</span>
+        `;
+        pillsContainer.appendChild(pill);
+      });
+
+      // Indicador inferior si hay tareas completadas o más tareas
+      const bottomRow = document.createElement('div');
+      bottomRow.className = 'min-h-[14px] flex items-center justify-between text-[10px] text-slate-400 font-medium';
+
+      if (dayTasks.length > 2) {
+        bottomRow.innerHTML = `<span>+${dayTasks.length - 2} más</span>`;
+      } else if (dayTasks.length > 0 && doneCount > 0) {
+        bottomRow.innerHTML = `<span class="flex items-center gap-1 text-slate-400"><span>🕒</span> ${doneCount}/${dayTasks.length}</span>`;
+      }
+
+      cell.appendChild(topRow);
+      cell.appendChild(pillsContainer);
+      cell.appendChild(bottomRow);
+      return cell;
+    }
+
+    // ==========================================
+    // 5. RENDERIZADO DEL PANEL DERECHO (AGENDA)
+    // ==========================================
     function renderSidePanel() {
       const [y, m, d] = selectedDateKey.split('-').map(Number);
       const dateObj = new Date(y, m - 1, d);
+      
       document.getElementById('selectedDateLabel').textContent = new Intl.DateTimeFormat('es-ES', {
-        weekday: 'long', day: 'numeric', month: 'long'
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
       }).format(dateObj);
 
       const list = document.getElementById('taskList');
@@ -441,13 +458,15 @@
       const dayTasks = tasksByDate[selectedDateKey] || [];
       const doneCount = dayTasks.filter(t => t.done).length;
 
-      document.getElementById('progressText').textContent = `${doneCount}/${dayTasks.length}`;
+      // Actualizar Barra de Progreso
+      document.getElementById('progressRatio').textContent = `${doneCount}/${dayTasks.length}`;
       const percent = dayTasks.length ? Math.round((doneCount / dayTasks.length) * 100) : 0;
+      document.getElementById('progressPercent').textContent = `${percent}%`;
       document.getElementById('progressBar').style.width = `${percent}%`;
 
       if (dayTasks.length === 0) {
         list.innerHTML = `
-          <div class="text-center py-12 text-slate-400 text-xs">
+          <div class="text-center py-16 text-slate-400 text-xs">
             No hay pendientes registrados para este día.
           </div>
         `;
@@ -457,31 +476,34 @@
       dayTasks.forEach(task => {
         const style = categoryStyles[task.category] || categoryStyles.trabajo;
         const item = document.createElement('div');
-        item.className = `p-3 rounded-xl border transition flex items-start justify-between gap-2 ${
-          task.done ? 'bg-slate-50 border-slate-200/60 opacity-60' : 'bg-white border-slate-200 shadow-2xs'
-        }`;
+        item.className = 'flex items-start justify-between group py-2 border-b border-slate-100 last:border-0';
 
         item.innerHTML = `
-          <label class="flex items-start gap-2.5 cursor-pointer flex-1">
-            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')" class="mt-1 rounded text-indigo-600 focus:ring-indigo-500">
+          <label class="flex items-start gap-3 cursor-pointer flex-1 select-none">
+            <div class="mt-0.5">
+              <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')" class="w-4 h-4 rounded border-slate-300 text-indigo-700 focus:ring-indigo-500 cursor-pointer">
+            </div>
             <div class="flex-1">
-              <p class="text-xs font-medium text-slate-800 ${task.done ? 'line-through' : ''}">${task.title}</p>
+              <p class="text-xs font-medium text-slate-800 leading-snug ${task.done ? 'line-through text-slate-400' : ''}">${task.title}</p>
               <div class="flex items-center gap-2 mt-1.5">
-                <span class="text-[10px] px-2 py-0.5 rounded-full border font-medium ${style.bg}">${style.label}</span>
-                ${task.assignee ? `<span class="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">👤 ${task.assignee}</span>` : ''}
+                <span class="text-[10px] px-2 py-0.5 rounded-md font-medium border ${style.bg}">${style.label}</span>
+                ${task.assignee ? `<span class="text-[10px] text-slate-500 flex items-center gap-1 font-normal">👤 ${task.assignee}</span>` : ''}
               </div>
             </div>
           </label>
-          <button onclick="deleteTask('${task.id}')" class="text-slate-400 hover:text-rose-600 text-xs px-1" title="Eliminar">✕</button>
+          <button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-rose-600 text-sm px-1.5 transition leading-none" title="Eliminar">✕</button>
         `;
         list.appendChild(item);
       });
     }
 
+    // ==========================================
+    // 6. ACCIONES COMPARTIR
+    // ==========================================
     function copyWorkspaceLink() {
       const url = `${window.location.origin}${window.location.pathname}?ws=${currentWorkspace}`;
       navigator.clipboard.writeText(url);
-      showToast('🔗 Enlace copiado. ¡Compártelo con tu equipo!');
+      showToast('🔗 Enlace al calendario copiado al portapapeles');
     }
 
     function copyDaySummary() {
@@ -493,7 +515,7 @@
       const lines = dayTasks.map(t => `${t.done ? '✅' : '⬜'} ${t.title} ${t.assignee ? `(@${t.assignee})` : ''}`);
       const summary = `📅 *Pendientes del ${selectedDateKey}*\n` + lines.join('\n');
       navigator.clipboard.writeText(summary);
-      showToast('📋 Resumen copiado al portapapeles.');
+      showToast('📋 Resumen copiado para WhatsApp / Slack');
     }
 
     function showToast(msg) {
@@ -501,27 +523,6 @@
       toast.textContent = msg;
       toast.classList.remove('opacity-0');
       setTimeout(() => toast.classList.add('opacity-0'), 3000);
-    }
-
-    function openConfigModal() {
-      document.getElementById('cfgUrl').value = SUPABASE_URL;
-      document.getElementById('cfgKey').value = SUPABASE_ANON_KEY;
-      document.getElementById('configModal').classList.remove('hidden');
-    }
-
-    function saveManualConfig() {
-      const url = document.getElementById('cfgUrl').value.trim();
-      const key = document.getElementById('cfgKey').value.trim();
-      if (!url || !key) {
-        alert('Por favor ingresa ambos valores');
-        return;
-      }
-      localStorage.setItem('taskcal_supabase_url', url);
-      localStorage.setItem('taskcal_supabase_key', key);
-      SUPABASE_URL = url;
-      SUPABASE_ANON_KEY = key;
-      document.getElementById('configModal').classList.add('hidden');
-      init();
     }
 
     init();
