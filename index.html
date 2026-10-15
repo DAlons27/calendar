@@ -144,10 +144,10 @@
     const SUPABASE_URL = 'https://qfteohzbcectdynesoyl.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdGVvaHpiY2VjdGR5bmVzb3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODQ2OTMsImV4cCI6MjEwNzY2MDY5M30.RKPuMqKX5odP_M8KtIYys1tUg9k9QrWT8P5sG1ncPuw';
     
-    let supabase = null;
+    let dbClient = null;
     try {
       if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
     } catch (e) {
       console.warn('Supabase no inicializado, modo offline activado', e);
@@ -203,9 +203,9 @@
     }
 
     async function fetchTasks() {
-      if (!supabase) return;
+      if (!dbClient) return;
       try {
-        const { data, error } = await supabase
+        const { data, error } = await dbClient
           .from('calendar_tasks')
           .select('*')
           .eq('workspace_slug', currentWorkspace);
@@ -232,9 +232,9 @@
     }
 
     function setupRealtime() {
-      if (!supabase) return;
+      if (!dbClient) return;
       try {
-        supabase
+        dbClient
           .channel('public:calendar_tasks')
           .on(
             'postgres_changes',
@@ -301,9 +301,9 @@
       showToast('✅ Pendiente agregado');
 
       // 2. Sincronizar en segundo plano con Supabase
-      if (supabase) {
+      if (dbClient) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await dbClient
             .from('calendar_tasks')
             .insert([{
               workspace_slug: currentWorkspace,
@@ -342,9 +342,9 @@
       renderCalendar();
       renderSidePanel();
 
-      if (supabase) {
+      if (dbClient) {
         try {
-          await supabase
+          await dbClient
             .from('calendar_tasks')
             .update({ done: task.done })
             .eq('id', taskId);
@@ -364,9 +364,9 @@
       renderSidePanel();
       showToast('🗑️ Tarea eliminada');
 
-      if (supabase) {
+      if (dbClient) {
         try {
-          await supabase
+          await dbClient
             .from('calendar_tasks')
             .delete()
             .eq('id', taskId);
